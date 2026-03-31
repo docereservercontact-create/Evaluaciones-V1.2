@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Examen con Temporizador</title>
+<style>
+body {
+    font-family: Arial;
+    background-color: #e8f5e9;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+.container {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    width: 400px;
+    text-align: center;
+}
+button {
+    margin-top: 10px;
+    padding: 10px;
+    width: 100%;
+    background: #2e7d32;
+    color: white;
+    border: none;
+    border-radius: 5px;
+}
+#timer {
+    font-weight: bold;
+    color: #d32f2f;
+}
+</style>
+</head>
+<body>
+
+<div class="container" id="registro">
+    <h2>Registro</h2>
+    <input type="text" id="nombre" placeholder="Nombre"><br>
+    <input type="text" id="cuenta" placeholder="Número de cuenta"><br>
+    <button onclick="iniciarExamen()">Iniciar</button>
+</div>
+
+<div class="container" id="examen" style="display:none;">
+    <h3 id="pregunta"></h3>
+    <div id="opciones"></div>
+    <p>Tiempo restante: <span id="timer">01:05</span></p>
+    <button onclick="siguientePregunta()">Siguiente</button>
+</div>
+
+<script>
+let preguntas = [
+    {
+        texto: "¿Cuál es la capital de México?",
+        opciones: ["Guadalajara", "Monterrey", "CDMX", "Puebla"],
+        correcta: 2
+    },
+    {
+        texto: "¿2 + 2 = ?",
+        opciones: ["3", "4", "5", "6"],
+        correcta: 1
+    }
+];
+
+let actual = 0;
+let tiempo = 65;
+let intervalo;
+
+function iniciarExamen() {
+    document.getElementById("registro").style.display = "none";
+    document.getElementById("examen").style.display = "block";
+    cargarPregunta();
+}
+
+function cargarPregunta() {
+    let p = preguntas[actual];
+    document.getElementById("pregunta").textContent = p.texto;
+    let opcionesHTML = "";
+
+    p.opciones.forEach((op, i) => {
+        opcionesHTML += `<label><input type="radio" name="opcion" value="${i}"> ${op}</label><br>`;
+    });
+
+    document.getElementById("opciones").innerHTML = opcionesHTML;
+    iniciarTimer();
+}
+
+function iniciarTimer() {
+    tiempo = 65;
+    actualizarTimer();
+    clearInterval(intervalo);
+
+    intervalo = setInterval(() => {
+        tiempo--;
+        actualizarTimer();
+
+        if (tiempo <= 0) {
+            siguientePregunta();
+        }
+    }, 1000);
+}
+
+function actualizarTimer() {
+    let min = Math.floor(tiempo / 60);
+    let seg = tiempo % 60;
+    document.getElementById("timer").textContent =
+        `${min.toString().padStart(2, '0')}:${seg.toString().padStart(2, '0')}`;
+}
+
+function siguientePregunta() {
+    clearInterval(intervalo);
+    actual++;
+
+    if (actual < preguntas.length) {
+        cargarPregunta();
+    } else {
+        alert("Examen terminado");
+        location.reload();
+    }
+}
+</script>
+
+</body>
+</html>
