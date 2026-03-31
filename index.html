@@ -4,34 +4,10 @@
 <meta charset="UTF-8">
 <title>Examen con Temporizador</title>
 <style>
-body {
-    font-family: Arial;
-    background-color: #e8f5e9;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-}
-.container {
-    background: white;
-    padding: 20px;
-    border-radius: 10px;
-    width: 400px;
-    text-align: center;
-}
-button {
-    margin-top: 10px;
-    padding: 10px;
-    width: 100%;
-    background: #2e7d32;
-    color: white;
-    border: none;
-    border-radius: 5px;
-}
-#timer {
-    font-weight: bold;
-    color: #d32f2f;
-}
+body {font-family: Arial;background:#e8f5e9;display:flex;justify-content:center;align-items:center;height:100vh;}
+.container {background:white;padding:20px;border-radius:10px;width:420px;text-align:center;}
+button {margin-top:10px;padding:10px;width:100%;background:#2e7d32;color:white;border:none;border-radius:5px;}
+#timer {font-weight:bold;color:#d32f2f;}
 </style>
 </head>
 <body>
@@ -51,25 +27,26 @@ button {
 </div>
 
 <script>
-let preguntas = [
-    {
-        texto: "¿Cuál es la capital de México?",
-        opciones: ["Guadalajara", "Monterrey", "CDMX", "Puebla"],
-        correcta: 2
-    },
-    {
-        texto: "¿2 + 2 = ?",
-        opciones: ["3", "4", "5", "6"],
-        correcta: 1
-    }
-];
+
+// ====== URL DE TU SHEETDB ======
+const API_URL = "https://sheetdb.io/api/v1/x0ov5838hh6tx";
+
+// ====== GENERAR 120 PREGUNTAS ======
+let preguntas = [];
+for(let i=1;i<=120;i++){
+    preguntas.push({
+        texto: `Pregunta ${i}: Selecciona la opción correcta`,
+        opciones: ["A", "B", "C", "D"],
+        correcta: Math.floor(Math.random()*4)
+    });
+}
 
 let actual = 0;
 let tiempo = 65;
 let intervalo;
 let respuestasCorrectas = 0;
 
-function iniciarExamen() {
+async function iniciarExamen() {
     let nombre = document.getElementById("nombre").value.trim();
     let cuenta = document.getElementById("cuenta").value.trim();
 
@@ -78,7 +55,25 @@ function iniciarExamen() {
         return;
     }
 
-    // Guardar en localStorage
+    // ===== VALIDAR CONTRA GOOGLE SHEETS =====
+    try {
+        let res = await fetch(API_URL);
+        let alumnos = await res.json();
+
+        let autorizado = alumnos.some(alumno => 
+            alumno.nombre?.toLowerCase() === nombre.toLowerCase() && alumno.cuenta === cuenta
+        );
+
+        if(!autorizado){
+            alert("No estás registrado para presentar el examen");
+            return;
+        }
+
+    } catch(error){
+        alert("Error al conectar con la base de datos");
+        return;
+    }
+
     localStorage.setItem("nombre", nombre);
     localStorage.setItem("cuenta", cuenta);
 
@@ -125,7 +120,6 @@ function actualizarTimer() {
 function siguientePregunta() {
     clearInterval(intervalo);
 
-    // Verificar respuesta
     let seleccion = document.querySelector('input[name="opcion"]:checked');
     if(seleccion){
         if(parseInt(seleccion.value) === preguntas[actual].correcta){
@@ -142,24 +136,14 @@ function siguientePregunta() {
     }
 }
 
-// === GUARDAR EN GOOGLE SHEETS ===
 function guardarDatos(nombre, cuenta, calificacion) {
-    fetch("https://sheetdb.io/api/v1/x0ov5838hh6tx", {
+    fetch(API_URL, {
         method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
+        headers: {"Content-Type": "application/json"},
         body: JSON.stringify({
-            data: {
-                nombre: nombre,
-                cuenta: cuenta,
-                calificacion: calificacion
-            }
+            data: {nombre:nombre, cuenta:cuenta, calificacion:calificacion}
         })
-    })
-    .then(res => res.json())
-    .then(data => console.log("Guardado:", data))
-    .catch(err => console.error(err));
+    });
 }
 
 function finalizarExamen(){
