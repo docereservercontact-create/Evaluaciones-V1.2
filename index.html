@@ -28,10 +28,11 @@ button {margin-top:10px;padding:10px;width:100%;background:#1565c0;color:white;b
 
 <script>
 
-// ====== URL DE TU SHEETDB ======
-const API_URL = "https://sheetdb.io/api/v1/x0ov5838hh6tx";
+// ===== APIs =====
+const API_ALUMNOS = "https://sheetdb.io/api/v1/zpplpv67yt6uz";
+const API_RESULTADOS = "https://sheetdb.io/api/v1/pyjo72s7rlaw9";
 
-// ====== GENERAR 120 PREGUNTAS ======
+// ===== PREGUNTAS =====
 let preguntas = [];
 for(let i=1;i<=120;i++){
     preguntas.push({
@@ -46,6 +47,7 @@ let tiempo = 65;
 let intervalo;
 let respuestasCorrectas = 0;
 
+// ===== INICIO =====
 async function iniciarExamen() {
     let nombre = document.getElementById("nombre").value.trim();
     let cuenta = document.getElementById("cuenta").value.trim();
@@ -55,9 +57,8 @@ async function iniciarExamen() {
         return;
     }
 
-    // ===== VALIDAR CONTRA GOOGLE SHEETS =====
     try {
-        let res = await fetch(API_URL);
+        let res = await fetch(API_ALUMNOS);
         let alumnos = await res.json();
 
         let autorizado = alumnos.some(alumno => 
@@ -82,6 +83,7 @@ async function iniciarExamen() {
     cargarPregunta();
 }
 
+// ===== PREGUNTAS =====
 function cargarPregunta() {
     let p = preguntas[actual];
     document.getElementById("pregunta").textContent = p.texto;
@@ -95,6 +97,7 @@ function cargarPregunta() {
     iniciarTimer();
 }
 
+// ===== TIMER =====
 function iniciarTimer() {
     tiempo = 65;
     actualizarTimer();
@@ -117,6 +120,7 @@ function actualizarTimer() {
         `${min.toString().padStart(2, '0')}:${seg.toString().padStart(2, '0')}`;
 }
 
+// ===== SIGUIENTE =====
 function siguientePregunta() {
     clearInterval(intervalo);
 
@@ -136,16 +140,24 @@ function siguientePregunta() {
     }
 }
 
+// ===== GUARDAR RESULTADOS =====
 function guardarDatos(nombre, cuenta, calificacion) {
-    fetch(API_URL, {
+    fetch(API_RESULTADOS, {
         method: "POST",
         headers: {"Content-Type": "application/json"},
         body: JSON.stringify({
-            data: {nombre:nombre, cuenta:cuenta, calificacion:calificacion}
+            data: {
+                nombre: nombre,
+                cuenta: cuenta,
+                examen: "Examen 1",
+                calificacion: calificacion,
+                fecha: new Date().toLocaleString()
+            }
         })
     });
 }
 
+// ===== FINAL =====
 function finalizarExamen(){
     let nombre = localStorage.getItem("nombre");
     let cuenta = localStorage.getItem("cuenta");
